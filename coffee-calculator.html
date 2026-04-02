@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コーヒー豆 必要量かんたん計算 | 会染焙煎工房</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5efe6;
+    --warm-white: #faf7f2;
+    --brown-deep: #3d2b1f;
+    --brown-mid: #7a5c45;
+    --brown-light: #b8906a;
+    --brown-pale: #d9c4ae;
+    --accent: #c0753a;
+    --green-muted: #7a8c6e;
+    --text: #2e1f14;
+    --shadow: rgba(61,43,31,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Serif JP', serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* 背景テクスチャ */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(192,117,58,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(122,92,69,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px 60px;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--brown-mid);
+    border: 1px solid var(--brown-pale);
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.5);
+  }
+
+  .header h1 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--brown-deep);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--brown-mid);
+    line-height: 1.9;
+    font-weight: 300;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--brown-pale);
+  }
+  .divider span {
+    font-size: 16px;
+    color: var(--brown-pale);
+  }
+
+  /* カード */
+  .card {
+    background: var(--warm-white);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 2px 16px var(--shadow), 0 0 0 1px rgba(184,144,106,0.1);
+    margin-bottom: 16px;
+    transition: box-shadow 0.3s;
+  }
+
+  .card-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--brown-light);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .card h2 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 17px;
+    color: var(--brown-deep);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card h2 .icon {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    color: white;
+  }
+
+  /* 選択ボタン */
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .btn-choice {
+    padding: 9px 18px;
+    border: 1.5px solid var(--brown-pale);
+    border-radius: 8px;
+    background: transparent;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    color: var(--brown-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-choice:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(192,117,58,0.04);
+  }
+
+  .btn-choice.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    box-shadow: 0 2px 8px rgba(192,117,58,0.3);
+  }
+
+  /* 自由入力 */
+  .custom-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .custom-input-row label {
+    font-size: 12px;
+    color: var(--brown-mid);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .custom-input-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1.5px solid var(--brown-pale);
+    border-radius: 8px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    color: var(--brown-deep);
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .custom-input-row input:focus {
+    border-color: var(--accent);
+  }
+
+  .custom-input-row .unit {
+    font-size: 13px;
+    color: var(--brown-mid);
+    flex-shrink: 0;
+  }
+
+  /* 計算ボタン */
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--brown-deep);
+    color: var(--cream);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .calc-btn:hover {
+    background: var(--accent);
+    box-shadow: 0 4px 16px rgba(192,117,58,0.35);
+    transform: translateY(-1px);
+  }
+
+  .calc-btn:active {
+    transform: translateY(0);
+  }
+
+  /* 結果 */
+  .result-section {
+    display: none;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .result-section.show {
+    display: block;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .result-header h3 {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 18px;
+    color: var(--brown-deep);
+    margin-bottom: 4px;
+  }
+
+  .result-header p {
+    font-size: 12px;
+    color: var(--brown-mid);
+    letter-spacing: 0.08em;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .result-item {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 16px;
+    text-align: center;
+    border: 1px solid var(--brown-pale);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .result-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  .result-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    opacity: 0.5;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .result-item:nth-child(1)::before { opacity: 0.3; }
+  .result-item:nth-child(2)::before { opacity: 0.5; }
+  .result-item:nth-child(3)::before { opacity: 0.7; }
+  .result-item:nth-child(4)::before { opacity: 1; }
+
+  .result-period {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--brown-light);
+    margin-bottom: 10px;
+  }
+
+  .result-amount {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--brown-deep);
+    line-height: 1;
+  }
+
+  .result-amount span {
+    font-size: 14px;
+    color: var(--brown-mid);
+  }
+
+  .result-cups {
+    font-size: 11px;
+    color: var(--brown-light);
+    margin-top: 6px;
+  }
+
+  /* 目安メモ */
+  .note-card {
+    background: rgba(122,140,110,0.08);
+    border: 1px solid rgba(122,140,110,0.2);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-top: 16px;
+  }
+
+  .note-card p {
+    font-size: 12px;
+    color: var(--green-muted);
+    line-height: 1.9;
+    letter-spacing: 0.04em;
+  }
+
+  .note-card strong {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--green-muted);
+  }
+
+  /* フッター */
+  .footer {
+    text-align: center;
+    padding-top: 32px;
+  }
+
+  .footer p {
+    font-size: 11px;
+    color: var(--brown-light);
+    letter-spacing: 0.1em;
+    line-height: 2;
+  }
+
+  .bean-icon {
+    font-size: 20px;
+    display: block;
+    margin: 0 auto 8px;
+  }
+
+  /* エラー */
+  .error-msg {
+    display: none;
+    font-size: 12px;
+    color: #c0392b;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .error-msg.show { display: block; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div class="header-badge">会染焙煎工房</div>
+    <h1>コーヒー豆<br>必要量かんたん計算</h1>
+    <p>1杯に使う豆の量と、1日に飲む杯数を選ぶだけで<br>購入の目安量を自動でお知らせします。</p>
+  </div>
+
+  <!-- 豆の量 -->
+  <div class="card">
+    <div class="card-label">STEP 1</div>
+    <h2><span class="icon">☕</span>1杯に使う豆の量は？</h2>
+    <div class="btn-group" id="gramsGroup">
+      <button class="btn-choice" data-val="8" onclick="selectGrams(this)">8g</button>
+      <button class="btn-choice" data-val="10" onclick="selectGrams(this)">10g</button>
+      <button class="btn-choice" data-val="12" onclick="selectGrams(this)">12g</button>
+      <button class="btn-choice" data-val="15" onclick="selectGrams(this)">15g</button>
+    </div>
+    <div class="custom-input-row">
+      <label>その他</label>
+      <input type="number" id="gramsCustom" placeholder="例：13" min="1" max="50"
+        oninput="onCustomGrams(this)" inputmode="numeric">
+      <span class="unit">g</span>
+    </div>
+  </div>
+
+  <!-- 杯数 -->
+  <div class="card">
+    <div class="card-label">STEP 2</div>
+    <h2><span class="icon">☀</span>1日に飲む杯数は？</h2>
+    <div class="btn-group" id="cupsGroup">
+      <button class="btn-choice" data-val="1" onclick="selectCups(this)">1杯</button>
+      <button class="btn-choice" data-val="2" onclick="selectCups(this)">2杯</button>
+      <button class="btn-choice" data-val="3" onclick="selectCups(this)">3杯</button>
+      <button class="btn-choice" data-val="4" onclick="selectCups(this)">4杯</button>
+      <button class="btn-choice" data-val="5" onclick="selectCups(this)">5杯</button>
+    </div>
+    <div class="custom-input-row">
+      <label>その他</label>
+      <input type="number" id="cupsCustom" placeholder="例：6" min="1" max="20"
+        oninput="onCustomCups(this)" inputmode="numeric">
+      <span class="unit">杯</span>
+    </div>
+  </div>
+
+  <!-- 計算ボタン -->
+  <button class="calc-btn" onclick="calculate()">
+    ☕ 必要量を計算する
+  </button>
+  <p class="error-msg" id="errorMsg">1杯の豆の量と1日の杯数を選んでください</p>
+
+  <div class="divider"><span>✦</span></div>
+
+  <!-- 結果 -->
+  <div class="result-section" id="resultSection">
+    <div class="card">
+      <div class="result-header">
+        <h3>あなたに必要なコーヒー豆の量</h3>
+        <p id="resultMeta"></p>
+      </div>
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="result-period">1 DAY</div>
+          <div class="result-amount" id="r1day">—<span>g</span></div>
+          <div class="result-cups" id="c1day"></div>
+        </div>
+        <div class="result-item">
+          <div class="result-period">1 WEEK</div>
+          <div class="result-amount" id="r1week">—<span>g</span></div>
+          <div class="result-cups" id="c1week"></div>
+        </div>
+        <div class="result-item">
+          <div class="result-period">2 WEEKS</div>
+          <div class="result-amount" id="r2week">—<span>g</span></div>
+          <div class="result-cups" id="c2week"></div>
+        </div>
+        <div class="result-item">
+          <div class="result-period">1 MONTH</div>
+          <div class="result-amount" id="r1month">—<span>g</span></div>
+          <div class="result-cups" id="c1month"></div>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <strong>🌿 ご購入の目安</strong>
+        <p id="noteText">計算結果に合わせて、少し多めにご購入いただくと焙煎後の鮮度が高いうちにお楽しみいただけます。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- フッター -->
+  <div class="footer">
+    <span class="bean-icon">◉</span>
+    <p>会染焙煎工房<br>長野県池田町｜週1回営業の自家焙煎コーヒーショップ</p>
+  </div>
+
+</div>
+
+<script>
+  let selectedGrams = null;
+  let selectedCups = null;
+
+  function selectGrams(btn) {
+    document.querySelectorAll('#gramsGroup .btn-choice').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedGrams = parseFloat(btn.dataset.val);
+    document.getElementById('gramsCustom').value = '';
+  }
+
+  function selectCups(btn) {
+    document.querySelectorAll('#cupsGroup .btn-choice').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCups = parseFloat(btn.dataset.val);
+    document.getElementById('cupsCustom').value = '';
+  }
+
+  function onCustomGrams(input) {
+    document.querySelectorAll('#gramsGroup .btn-choice').forEach(b => b.classList.remove('active'));
+    selectedGrams = parseFloat(input.value) || null;
+  }
+
+  function onCustomCups(input) {
+    document.querySelectorAll('#cupsGroup .btn-choice').forEach(b => b.classList.remove('active'));
+    selectedCups = parseFloat(input.value) || null;
+  }
+
+  function calculate() {
+    const errEl = document.getElementById('errorMsg');
+
+    if (!selectedGrams || !selectedCups) {
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+
+    const daily = selectedGrams * selectedCups;
+    const weekly = daily * 7;
+    const biweekly = daily * 14;
+    const monthly = daily * 30;
+
+    document.getElementById('resultMeta').textContent =
+      `1杯 ${selectedGrams}g × 1日 ${selectedCups}杯 で計算`;
+
+    setResult('r1day', 'c1day', daily, selectedCups, '日');
+    setResult('r1week', 'c1week', weekly, selectedCups * 7, '週間');
+    setResult('r2week', 'c2week', biweekly, selectedCups * 14, '週間');
+    setResult('r1month', 'c1month', monthly, selectedCups * 30, 'ヶ月');
+
+    // 目安テキスト
+    const noteEl = document.getElementById('noteText');
+    let noteMsg = '';
+    if (monthly <= 100) {
+      noteMsg = `月${monthly}g以内のご使用量です。100g袋がちょうどよいサイズです。焙煎後2〜3週間を目安にお飲みください。`;
+    } else if (monthly <= 200) {
+      noteMsg = `月${monthly}g程度のご使用量です。200g袋がおすすめです。2週間ごとのご購入が新鮮に楽しめます。`;
+    } else {
+      noteMsg = `月${monthly}g以上のご使用量です。定期的なまとめ購入がおすすめ。焙煎後は密閉容器で常温保存し、なるべく早めにお飲みください。`;
+    }
+    noteEl.textContent = noteMsg;
+
+    const section = document.getElementById('resultSection');
+    section.classList.remove('show');
+    void section.offsetWidth;
+    section.classList.add('show');
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function setResult(amountId, cupsId, grams, cups, unit) {
+    const amountEl = document.getElementById(amountId);
+    const cupsEl = document.getElementById(cupsId);
+    amountEl.innerHTML = `${grams}<span>g</span>`;
+    cupsEl.textContent = `約${cups}杯分`;
+  }
+</script>
+</body>
+</html>
